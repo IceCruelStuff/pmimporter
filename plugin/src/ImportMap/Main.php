@@ -33,7 +33,7 @@ class Main extends Plugin implements CommandExecutor {
 	}
 
 	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) {
-		switch($cmd->getName()) {
+		switch($command->getName()) {
 			case "im":
 				if (!$sender->hasPermission("im.cmd.im")) {
 					$sender->sendMessage("You do not have permission to do that.");
@@ -88,7 +88,7 @@ class Main extends Plugin implements CommandExecutor {
 						'-f',
 						$dstfmt,
 						$impath,
-						$target
+						$target,
 					]
 				);
 				return true;
