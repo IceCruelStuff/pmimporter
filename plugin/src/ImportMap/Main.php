@@ -1,4 +1,5 @@
 <?php
+
 namespace ImportMap;
 
 use pocketmine\plugin\PluginBase as Plugin;
@@ -10,36 +11,44 @@ use pocketmine\level\format\LevelProviderManager;
 use pocketmine\utils\TextFormat;
 
 class Main extends Plugin implements CommandExecutor {
+
 	private function importer() {
-		if ($this->isPhar())
-			return preg_replace('/\/+$/','',substr($this->getFile(),7));
-		//echo "IMPORTER: ".substr($this->getFile(),7)."\n";
+		if ($this->isPhar()) {
+			return preg_replace('/\/+$/', '', substr($this->getFile(), 7));
+		}
+		//echo "IMPORTER: " . substr($this->getFile(), 7) . "\n";
 		echo dirname(realpath($this->getFile()))."/pmimporter/pmimporter.phar\n";
 		return dirname(realpath($this->getFile()))."/pmimporter/pmimporter.phar";
 	}
+
 	private function schedule($args) {
 		$this->getServer()->getScheduler()->scheduleAsyncTask(new Importer($args));
 	}
+
 	private function usage(CommandSender $c) {
 		$c->sendMessage("Usage:");
 		$c->sendMessage("-  ".TextFormat::GREEN."/im version".TextFormat::RESET.": get the pmimporter version");
 		$c->sendMessage("-  ".TextFormat::GREEN."/im path world".TextFormat::RESET.": import map in [path] as level named [world]");
 		return true;
 	}
-	public function onCommand(CommandSender $sender, Command $cmd, $label, array $args) {
 
+	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) {
 		switch($cmd->getName()) {
 			case "im":
 				if (!$sender->hasPermission("im.cmd.im")) {
 					$sender->sendMessage("You do not have permission to do that.");
 					return true;
 				}
-				if (!isset($args[0])) return $this->usage($sender);
+				if (!isset($args[0])) {
+					return $this->usage($sender);
+				}
 				if ($args[0] == "version") {
 					$sender->sendMessage(Importer::phpRun([$this->importer(),'version']));
 					return true;
 				}
-				if (!isset($args[1])) return $this->usage($sender);
+				if (!isset($args[1])) {
+					return $this->usage($sender);
+				}
 
 				$impath = $args[0];
 				$world = $args[1];
@@ -70,9 +79,18 @@ class Main extends Plugin implements CommandExecutor {
 				$sender->sendMessage("Importing $impath to $world in the background");
 				$this->getServer()->broadcastMessage("Importing world, expect LAG!");
 				$dir =$this->getDataFolder();
-				$this->schedule([$this->importer(),'convert',
-									  '-c',$dir.'rules.txt','-f',$dstfmt,
-									  $impath,$target]);
+				$this->schedule(
+					[
+						$this->importer(),
+						'convert',
+						'-c',
+						$dir . 'rules.txt',
+						'-f',
+						$dstfmt,
+						$impath,
+						$target
+					]
+				);
 				return true;
 				break;
 			default:
@@ -81,11 +99,13 @@ class Main extends Plugin implements CommandExecutor {
 		return true;
 	}
 
-	public function onEnable() {
+	public function onEnable() : void {
 		@mkdir($this->getDataFolder());
 		$this->saveResource('rules.txt',false);
 	}
-	public function onDisable() {
+
+	public function onDisable() : void {
 		$this->getLogger()->info("ImportMap Unloaded!");
 	}
+
 }
